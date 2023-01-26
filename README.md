@@ -27,3 +27,19 @@ I used the the following board because that is what I had on my drawer:
   <img src="https://cdn.sparkfun.com//assets/parts/6/2/3/5/11083-04.jpg" width="50%">
 </p>
 </a>
+
+### Using the Variable Capacitor to select the frequency
+
+If we connect the variable to the internal stray capacitor, the voltage on the ADC pin will settle quickly, therefore it is a simple voltage divider with stray capacitance:
+
+<p align="center">
+  <img src=".github\variable_capacitor.png" width="50%">
+</p>
+
+If you don't believe me, you can simulate it here: https://tinyurl.com/2ngws8rg
+
+Or calculate here: https://tinyurl.com/4mx4383y
+
+<p align="center">
+  <img src=".github\plot.png" width="50%">
+</p>

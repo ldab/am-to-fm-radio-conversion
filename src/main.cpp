@@ -7,12 +7,12 @@
 #define FIX_BAND RADIO_BAND_FM // FM band 87.5 - 108 MHz (USA, Europe) selected.
 #define FIX_STATION 8910       // aka 89.30 MHz.
 #define FIX_VOLUME 15
+#define MIN_VARIABLE_CAPACITOR 70
+#define MAX_VARIABLE_CAPACITOR 570
 
 #define ADC_IN A0
 #define ADC_VCC A4
 
-const float IN_STRAY_CAP_TO_GND = 24.48;
-const float IN_CAP_TO_GND = IN_STRAY_CAP_TO_GND;
 const float R_PULLUP = 34.8;
 const int MAX_ADC_VALUE = 4095;
 
@@ -20,6 +20,30 @@ SI4703 radio; // Create an instance of Class for Si4703 Chip
 Adafruit_DotStar strip = Adafruit_DotStar(DOTSTAR_NUM, PIN_DOTSTAR_DATA, PIN_DOTSTAR_CLK, DOTSTAR_BGR);
 
 static float measureCap()
+{
+  const float STRAY_CAP_TO_GND = 24.48;
+  pinMode(ADC_IN, INPUT);
+  pinMode(ADC_VCC, OUTPUT);
+  digitalWrite(ADC_VCC, HIGH);
+
+  uint32_t val = analogRead(ADC_IN);
+
+  digitalWrite(ADC_VCC, LOW); // discharge
+  pinMode(ADC_IN, OUTPUT);
+
+  // The voltage on ADC will settle quickly, it is a simple voltage divider with stray capacitance
+  float capacitance = (float)val * STRAY_CAP_TO_GND / (float)(MAX_ADC_VALUE - val);
+
+  Serial.print(F("Capacitance Value = "));
+  Serial.print(capacitance, 3);
+  Serial.print(F(" pF ("));
+  Serial.print(val);
+  Serial.println(F(") "));
+
+  return capacitance;
+}
+
+static float measureCapLong()
 {
   pinMode(ADC_IN, OUTPUT);
   delay(1);
@@ -101,7 +125,7 @@ void loop()
   {
     // FM band 87.5 - 108
     // My variable capacitor ranges from 70 to 570pF
-    uint16_t newFreq = map(cap, 70, 570, 8750, 10800);
+    uint16_t newFreq = map(cap, MIN_VARIABLE_CAPACITOR, MAX_VARIABLE_CAPACITOR, 8750, 10800);
     radio.setFrequency(newFreq);
     cap = avgCap;
   }
