@@ -12,35 +12,33 @@
 
 #define ADC_IN A0
 #define ADC_VCC A4
+#define ADC_RESOLUTION 12
 
 const float R_PULLUP = 34.8;
-const int MAX_ADC_VALUE = 4095;
+const int MAX_ADC_VALUE = (0x01 << ADC_RESOLUTION) - 1;
+const float STRAY_CAP_TO_GND = 49.63;
+
+typedef struct{
+  float val;
+  uint32_t raw;
+}cap_measurement_t;
 
 SI4703 radio; // Create an instance of Class for Si4703 Chip
 Adafruit_DotStar strip = Adafruit_DotStar(DOTSTAR_NUM, PIN_DOTSTAR_DATA, PIN_DOTSTAR_CLK, DOTSTAR_BGR);
 
-static float measureCap()
+void measureCap(cap_measurement_t* cap)
 {
-  const float STRAY_CAP_TO_GND = 24.48;
   pinMode(ADC_IN, INPUT);
   pinMode(ADC_VCC, OUTPUT);
   digitalWrite(ADC_VCC, HIGH);
 
-  uint32_t val = analogRead(ADC_IN);
+  cap->raw = analogRead(ADC_IN);
 
   digitalWrite(ADC_VCC, LOW); // discharge
   pinMode(ADC_IN, OUTPUT);
 
   // The voltage on ADC will settle quickly, it is a simple voltage divider with stray capacitance
-  float capacitance = (float)val * STRAY_CAP_TO_GND / (float)(MAX_ADC_VALUE - val);
-
-  Serial.print(F("Capacitance Value = "));
-  Serial.print(capacitance, 3);
-  Serial.print(F(" pF ("));
-  Serial.print(val);
-  Serial.println(F(") "));
-
-  return capacitance;
+  cap->val = (float)cap->raw * STRAY_CAP_TO_GND / (float)(MAX_ADC_VALUE - cap->raw);
 }
 
 static float measureCapLong()
@@ -67,19 +65,16 @@ static float measureCapLong()
 
   float capacitance = -(float)t / R_PULLUP / log(1.0 - (float)val / (float)MAX_ADC_VALUE);
 
-  Serial.print(F("Capacitance Value = "));
-  Serial.print(capacitance *= 1000, 2);
-  Serial.print(F(" pF\n"));
-  Serial.printf("t = %dus\n", t);
-
-  return capacitance;
+  return capacitance * 1000;
 }
 
 void setup()
 {
   Serial.begin(115200);
 
-  // while (!Serial) {}
+  while (!Serial)
+  {
+  }
 
   // Enable information to the Serial port
   radio.debugEnable(true);
@@ -107,27 +102,45 @@ void setup()
 
 void loop()
 {
-  static float cap = 0;
   float avgCap = 0;
-  const uint8_t avg = 10;
+  uint32_t avgRaw = 0;
+  const uint8_t avg = 100;
+  cap_measurement_t cap;
 
   for (size_t i = 0; i < avg; i++)
   {
-    avgCap += measureCap();
+    measureCap(&cap);
+    avgCap += cap.val;
+    avgRaw += cap.raw;
   }
 
   avgCap /= (float)avg;
+  avgRaw /= avg;
 
-  Serial.print(F("Capacitance Value = "));
-  Serial.print(avgCap, 2);
+  Serial.print(F("Capacitance ValueAVG = \t\t"));
+  Serial.println(avgCap, 1);
+  Serial.print(F("RAW ValueAVG = \t\t\t"));
+  Serial.println(avgRaw);
 
-  if (fabs(cap - avgCap) > 1) // TODO
+  Serial.print(F("Capacitance Short Single = \t"));
+  measureCap(&cap);
+  Serial.print(cap.val, 1);
+  Serial.print("pF - ");
+  Serial.println(cap.raw);
+
+  Serial.print(F("Capacitance ValueLong = \t"));
+  Serial.println(measureCapLong(), 1);
+
+  delay(1000);
+  return;
+
+  if (fabs(cap.val - avgCap) > 1) // TODO
   {
     // FM band 87.5 - 108
     // My variable capacitor ranges from 70 to 570pF
-    uint16_t newFreq = map(cap, MIN_VARIABLE_CAPACITOR, MAX_VARIABLE_CAPACITOR, 8750, 10800);
+    uint16_t newFreq = map(cap.val, MIN_VARIABLE_CAPACITOR, MAX_VARIABLE_CAPACITOR, 8750, 10800);
     radio.setFrequency(newFreq);
-    cap = avgCap;
+    cap.val = avgCap;
   }
 
   // 9710
