@@ -76,6 +76,8 @@ void setup()
   {
   }
 
+  Serial.printf("Version: %s\n", VERSION);
+
   // Enable information to the Serial port
   radio.debugEnable(true);
   radio._wireDebug(true);
@@ -96,6 +98,7 @@ void setup()
   pinMode(ADC_VCC, OUTPUT);
   pinMode(ADC_IN, INPUT);
   analogReadResolution(ADC_RESOLUTION);
+  // analogReference(AR_INTERNAL2V23); // Max 2,23V
 
   strip.begin();
 }
