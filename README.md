@@ -10,6 +10,11 @@
   <img src="./github/sample.jpeg" width="30%">
 </p>
 
+### TODO
+
+- [ ] PCB
+- [ ] Potentially Transformerless
+
 ### Main CPU
 
 I used the the following board because that is what I had on my drawer:
