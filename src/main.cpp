@@ -7,8 +7,8 @@
 #define FIX_BAND RADIO_BAND_FM // FM band 87.5 - 108 MHz (USA, Europe) selected.
 #define FIX_STATION 8910       // aka 89.30 MHz.
 #define FIX_VOLUME 15
-#define MIN_VARIABLE_CAPACITOR 70
-#define MAX_VARIABLE_CAPACITOR 570
+#define MIN_VARIABLE_CAPACITOR 0
+#define MAX_VARIABLE_CAPACITOR 250
 
 #define ADC_IN A0
 #define ADC_VCC A4
@@ -26,7 +26,7 @@ typedef struct{
 SI4703 radio; // Create an instance of Class for Si4703 Chip
 Adafruit_DotStar strip = Adafruit_DotStar(DOTSTAR_NUM, PIN_DOTSTAR_DATA, PIN_DOTSTAR_CLK, DOTSTAR_BGR);
 
-void measureCap(cap_measurement_t* cap)
+void measureCap(cap_measurement_t *cap)
 {
   pinMode(ADC_IN, INPUT);
   pinMode(ADC_VCC, OUTPUT);
@@ -72,7 +72,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  while (!Serial && millis() < 5000)
+  while (!Serial && (millis() < 5000))
   {
   }
 

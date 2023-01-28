@@ -41,3 +41,9 @@ Or calculate here: https://tinyurl.com/yc6bk4t7
 <p align="center">
   <img src=".github\plot.png" width="50%">
 </p>
+
+### FM Radio receiver
+
+<p align="center">
+  <img src=".github\power.png" width="50%">
+</p>
