@@ -72,7 +72,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  while (!Serial)
+  while (!Serial && millis() < 5000)
   {
   }
 
@@ -135,7 +135,7 @@ void loop()
   Serial.println(measureCapLong(), 1);
 
   delay(1000);
-  return;
+  // return;
 
   if (fabs(cap.val - avgCap) > 1) // TODO
   {
