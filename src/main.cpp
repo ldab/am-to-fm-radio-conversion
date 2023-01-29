@@ -7,12 +7,12 @@
 #define FIX_BAND RADIO_BAND_FM // FM band 87.5 - 108 MHz (USA, Europe) selected.
 #define FIX_STATION 8910       // aka 89.30 MHz.
 #define FIX_VOLUME 15
-#define MIN_VARIABLE_CAPACITOR 50
-#define MAX_VARIABLE_CAPACITOR 570
+#define MIN_VARIABLE_CAPACITOR 20
+#define MAX_VARIABLE_CAPACITOR 600
 
 #define ADC_IN A0
 #define ADC_VCC A4
-#define ADC_RESOLUTION 12
+#define ADC_RESOLUTION 11
 
 const float R_PULLUP = 34.8;
 const int MAX_ADC_VALUE = (0x01 << ADC_RESOLUTION) - 1;
@@ -96,7 +96,7 @@ void loop()
   avgCap /= (float)avg;
   avgRaw /= avg;
 
-  if (fabs(oldCap - avgCap) >= 2) // TODO
+  if (fabs(oldCap - avgCap) > 3) // TODO
   {
     // FM band 87.5 - 108
     uint16_t newFreq = map(avgCap, MIN_VARIABLE_CAPACITOR, MAX_VARIABLE_CAPACITOR, 8750, 10800);
